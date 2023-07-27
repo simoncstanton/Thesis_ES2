@@ -1,0 +1,205 @@
+---
+title: "Transform Equivalence - Parameter Study Compare Representations; exp addendum gamma-free, Study 4"
+subtitle: "Watkins Q, Linear Function Approximation"
+author: Simon C Stanton
+date: "`r format(Sys.time(), '%d %B %Y')`"
+params:
+  algorithm: watkins_q_lfa
+  algorithm_displayname: "Watkins Q, Linear Function Approximation"
+  exp_id_transform_one: 129758
+  exp_id_transform_two: 133215
+  transform_one: "ordinal"
+  transform_two: "ordinal_norm"
+  exp_id: 129758_133215
+  sj_id: 0    # all
+  game: "g111"
+output:
+  pdf_document: default
+  html_document: default
+knit: (function(inputFile, encoding) { 
+        rmarkdown::render(inputFile, 
+                          encoding = encoding, 
+                          output_file = paste(file.path(dirname(inputFile), "pdfs/", "compare_transforms__parameter_study__EXP_ADDENDUM_S4__watkins_q_lfa__ordinal_ordinal_norm3-test.pdf")))
+      })
+---
+\newpage
+
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#rmarkdown::render('Parameter_Study_Compare_Representation.Rmd', output_file = paste('report.', Sys.Date(), '.pdf', sep=''))
+
+library(ggplot2)
+library(car)
+library(ggpubr)
+library(ggrain)
+
+```
+
+```{r, import-data, echo=FALSE, include=FALSE}
+path_to_data = "C:/Users/stantons/Desktop/kunanyi/results/observations/selfplay_parameter_study/"
+view_path = "/view/ep_o/view_"
+file_suffix_pre = "_ep_o_table_parameter_study_"
+file_suffix_post = "_series.csv"
+
+exp_id_transform_one <- params$exp_id_transform_one 
+exp_id_transform_two <- params$exp_id_transform_two
+
+transform_one <- params$transform_one
+transform_two <- params$transform_two
+
+strategy <- params$algorithm_displayname 
+strategy_filename <- params$algorithm 
+
+
+# transform_one
+
+## CC Series
+filename = paste(path_to_data, exp_id_transform_one, view_path, exp_id_transform_one, file_suffix_pre, "cc", file_suffix_post, sep="")
+df_transform_one_set_cc <- read.csv(file= filename, header=TRUE)
+
+## CD Series
+filename = paste(path_to_data, exp_id_transform_one, view_path, exp_id_transform_one, file_suffix_pre, "cd", file_suffix_post, sep="")
+df_transform_one_set_cd <- read.csv(file= filename, header=TRUE)
+
+## DC Series
+filename = paste(path_to_data, exp_id_transform_one, view_path, exp_id_transform_one, file_suffix_pre, "dc", file_suffix_post, sep="")
+df_transform_one_set_dc <- read.csv(file= filename, header=TRUE)
+
+## DD Series
+filename = paste(path_to_data, exp_id_transform_one, view_path, exp_id_transform_one, file_suffix_pre, "dd", file_suffix_post, sep="")
+df_transform_one_set_dd <- read.csv(file= filename, header=TRUE)
+
+# Ordinal 
+
+## CC Series
+filename = paste(path_to_data, exp_id_transform_two, view_path, exp_id_transform_two, file_suffix_pre, "cc", file_suffix_post, sep="")
+df_transform_two_set_cc <- read.csv(file= filename, header=TRUE)
+
+## CD Series
+filename = paste(path_to_data, exp_id_transform_two, view_path, exp_id_transform_two, file_suffix_pre, "cd", file_suffix_post, sep="")
+df_transform_two_set_cd <- read.csv(file= filename, header=TRUE)
+
+## DC Series
+filename = paste(path_to_data, exp_id_transform_two, view_path, exp_id_transform_two, file_suffix_pre, "dc", file_suffix_post, sep="")
+df_transform_two_set_dc <- read.csv(file= filename, header=TRUE)
+
+## DD Series
+filename = paste(path_to_data, exp_id_transform_two, view_path, exp_id_transform_two, file_suffix_pre, "dd", file_suffix_post, sep="")
+df_transform_two_set_dd <- read.csv(file= filename, header=TRUE)
+
+
+
+df_combined_transforms <- data.frame(
+    Index <- c(seq.int(400), seq.int(400)),
+    Representation = factor(c(rep(paste(transform_one), 400), rep(paste(transform_two), 400))),
+    Outcome = factor(c(rep("CC", 100), rep("CD", 100), rep("DC", 100), rep("DD", 100), rep("CC", 100), rep("CD", 100), rep("DC", 100), rep("DD", 100))),
+    Proportion = c(df_transform_one_set_cc$CC, df_transform_one_set_cd$CD, df_transform_one_set_dc$DC, df_transform_one_set_dd$DD,  df_transform_two_set_cc$CC, df_transform_two_set_cd$CD, df_transform_two_set_dc$DC, df_transform_two_set_dd$DD)
+)
+
+# swaps order of transforms in boxplot by using levels() - factor() is by default alphabetical
+df_combined_transforms$Representation <- factor(df_combined_transforms$Representation, levels=c(paste(transform_one), paste(transform_two)))
+
+
+```
+
+# Visualise Data 
+
+###   ggrain
+
+
+### Boxplot
+
+```{r, echo=FALSE}
+# Plot and test
+
+
+df_both <- data.frame(
+  Index <- c(seq.int(800)),
+  id <- c(seq.int(400), seq.int(400)),
+  Representation = factor(c(rep(paste(transform_one), 400), rep(paste(transform_two), 400))),
+  Outcome = factor(c(rep("CC", 100), rep("CD", 100), rep("DC", 100), rep("DD", 100), rep("CC", 100), rep("CD", 100), rep("DC", 100), rep("DD", 100))),
+  Proportion = c(df_transform_one_set_cc$CC, df_transform_one_set_cd$CD, df_transform_one_set_dc$DC, df_transform_one_set_dd$DD,df_transform_two_set_cc$CC, df_transform_two_set_cd$CD, df_transform_two_set_dc$DC, df_transform_two_set_dd$DD )
+  
+)
+```
+
+```{r, echo=FALSE}
+
+
+df_both$Representation <- factor(df_both$Representation, levels=c(paste(transform_one), paste(transform_two)))
+options(repr.plot.width = 10, repr.plot.height = 7)
+
+ggplot(df_both, aes(x=Representation, y=Proportion, fill=Outcome, color=Outcome)) + theme_classic() +
+  scale_fill_manual(values=c("cyan3", "azure3", "lightsteelblue", "steelblue2")) +
+  scale_color_manual(values=c("cyan3", "azure3", "lightsteelblue", "steelblue2")) +
+  geom_rain(
+      id.long.var = "id",
+      rain.side="f",
+      boxplot.args = list(alpha=.9, width=0.6, outlier.size = .2, size=.12, color = "black"), 
+      violin.args = list(alpha=.4, width=4, color = NA), 
+      point.args = list(alpha=.5, stroke = .01, size=.5),
+      line.args = list(alpha=1, size=0.45, color="azure2"),
+      
+      boxplot.args.pos = list(
+          position = ggpp::position_dodgenudge(
+            x = c(-.48, -.47, -.45, -.44, .44, .45, .47, .48)
+          )
+      ),
+      violin.args.pos = list(
+        position = position_nudge(x = c(rep(-.9, 256*2), rep(-.9, 256*2), rep(-.9, 256*2), rep(-.9, 256*2), rep(.9, 256*2), rep(.9, 256*2), rep(.9, 256*2), rep(.9, 256*2)))
+      ), 
+      point.args.pos = list(
+        position = position_identity()
+      ),
+      line.args.pos = list(
+        position=position_identity()
+      )
+  ) +
+  theme(legend.position = c(.94, .7)) +
+  theme(axis.text.y = element_text(size=13)) +
+  theme(axis.text.x = element_text(size=13)) +
+  theme(axis.title.y = element_text(size=14)) +
+  theme(axis.title.x = element_text(size=14)) +
+  labs(title = paste( params$algorithm_displayname, "Behaviour Distribution"),
+       subtitle = paste("(", params$game, params$transform_one, "x",  params$game, params$transform_two, ")"  )
+  ) +
+  theme(plot.title = element_text(hjust = 0.5, size = 18),    # Center title position and size
+    plot.subtitle = element_text(hjust = 0.5, size=14),            # Center subtitle
+  ) +
+  annotate("text", x = Inf, y = -0.01, label = paste("exp_id_", exp_id_transform_one, sep=""), hjust=10.5, vjust=1.4, col="black", cex=2.5, alpha = 0.5) + 
+  annotate("text", x = Inf, y = -0.01, label = paste("exp_id_", exp_id_transform_two, sep=""), hjust=3.8, vjust=1.4, col="black", cex=2.5, alpha = 0.5)
+
+
+ggsave(path=".", filename=paste(params$exp_id, "_sj_", params$sj_id, "_", params$game, ".png", sep=""), bg='white', width=10, height=7 ) 
+
+```
+
+### Aggregated
+```{r, echo=FALSE}
+
+options(repr.plot.width = 10, repr.plot.height = 7)
+
+
+ggplot(df_combined_transforms, aes(x=Representation, y=Proportion, color=Outcome)) + theme_classic() +
+  scale_fill_manual(values=c("cyan3", "azure3", "lightsteelblue", "steelblue2")) +
+  scale_color_manual(values=c("cyan3", "azure3", "lightsteelblue", "steelblue2")) +
+  geom_rain(boxplot.args = list(alpha=.9, width=0.6, outlier.size = .2, size=.12, color = "black"),
+            rain.side="f",
+      violin.args = list(alpha=.4, width=4), 
+      point.args = list(alpha=.5, stroke = .01, size=.5),
+      line.args = list(alpha=1, size=0.45, color="azure2"),
+      boxplot.args.pos = list(
+          position = ggpp::position_dodgenudge(
+            x = c(-.5, .5)
+          )
+      ),
+      violin.args.pos = list(
+        position = position_nudge(x = c(rep(-.9, 256*2), rep(-.9, 256*2), rep(-.9, 256*2), rep(-.9, 256*2), rep(.9, 256*2), rep(.9, 256*2), rep(.9, 256*2), rep(.9, 256*2)))
+      ), 
+      )
+ggsave(path=".", filename=paste(params$exp_id, "_sj_", params$sj_id, "_", params$game, ".png", sep=""), bg='white', width=10, height=7 ) 
+
+```
+
+
+
