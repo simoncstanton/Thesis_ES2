@@ -7,4 +7,4 @@ Code for **Experiment Series Two: Representational Equivalence** from in-progres
 
 Please be aware this is research code and is not intended for use in production.
 
-Dataset for this experiment series is here: 10.5281/zenodo.8173539
+Dataset for this experiment series is here: 10.5281/zenodo.8171272
